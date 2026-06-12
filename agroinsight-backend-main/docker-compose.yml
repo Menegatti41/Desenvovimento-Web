@@ -1,0 +1,25 @@
+services:
+  api:
+    build: .
+    container_name: agroinsight-api
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      PORT: 3000
+      # TROQUE em produção. Em dev/acadêmico pode manter.
+      JWT_SECRET: ${JWT_SECRET:-dev_secret_change_me}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+      OPEN_METEO_FORECAST_URL: https://api.open-meteo.com/v1/forecast
+      OPEN_METEO_ARCHIVE_URL: https://archive-api.open-meteo.com/v1/archive
+      # LLM Gemini — defina no seu .env (ou shell). Vazio => fallback por regras.
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      # Defina SEED_ON_START=false para não popular dados de exemplo.
+      SEED_ON_START: ${SEED_ON_START:-true}
+    volumes:
+      # Persiste o banco SQLite entre reinícios do container.
+      - agroinsight_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  agroinsight_data:
