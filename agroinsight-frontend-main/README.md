@@ -38,6 +38,7 @@ src/
 │   └── agro.ts         # Interfaces para Talhao, Safra, etc.
 ├── App.tsx             # Componente raiz com as rotas
 └── main.tsx            # Ponto de entrada do React
+```
 ## 🔧 Pré-requisitos
 
 Antes de iniciar, certifique-se de ter instalado em sua máquina:
@@ -54,26 +55,51 @@ O serviço do Backend (AgroInsight API) também deve estar rodando para que a in
    git clone [https://github.com/seu-usuario/agroinsight-frontend.git](https://github.com/seu-usuario/agroinsight-frontend.git)
    cd agroinsight-frontend
    
-Instale as dependências do projeto:
+Instale as dependências base e as bibliotecas do ecossistema:
 
-```bash
+Bash
+2. Instale as dependências base do projeto
+```bash 
+# Roteamento, Requisições e Ícones
+npm install react-router-dom axios lucide-react
+
+# Mapas e Geolocalização (Leaflet)
+npm install leaflet react-leaflet
+npm install -D @types/leaflet
+
+# Gráficos de Performance e Produtividade
+npm install chart.js react-chartjs-2
+Caso necessite inicializar ou reinstalar o Tailwind CSS no projeto:
+
+Bash
+npm install -D tailwindcss@3 postcss autoprefixer
+npx tailwindcss@3 init -p
+
 npm install
-Configure as variáveis de ambiente. Crie um arquivo .env na raiz do projeto (ou modifique o existente) e configure o endereço do seu Backend:
+```
 
-Snippet de código
-VITE_API_URL=http://localhost:3000
+🖥️ Configuração Necessária no Back-end
+Para que o Frontend funcione perfeitamente e consiga se comunicar com o banco de dados e com a API, certifique-se de executar os seguintes comandos na pasta do seu Back-end:
+
+```Bash
+# Instalação do CORS (essencial para permitir requisições do Frontend)
+npm install cors
+
+# Execução das migrations para criar as tabelas (Talhões, Safras, etc.)
+npm run db:migrate
+
+# Execução dos seeds para popular o banco com dados iniciais de teste
+npm run db:seed
+```
+
+
 🎛️ Scripts Disponíveis
 No diretório do projeto, você pode executar os seguintes comandos:
-
+```bash
 npm run dev
+```
 Roda o aplicativo em modo de desenvolvimento.
-Abra http://localhost:5173 (ou a porta indicada no terminal) para visualizá-lo no navegador. A página irá recarregar automaticamente se você fizer alterações no código.
 
-npm run build
-Compila a aplicação para produção na pasta dist. O build é otimizado e os arquivos são minificados para garantir a melhor performance.
-
-npm run lint
-Executa o linter para analisar o código em busca de problemas de formatação ou boas práticas do TypeScript/React.
 
 🤝 Comunicação com o Back-end
 A interface realiza requisições para os seguintes endpoints principais:
