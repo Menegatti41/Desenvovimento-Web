@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Sprout, LayoutDashboard, Map as MapIcon, Settings, LogOut } from 'lucide-react';
+import { Sprout, LayoutDashboard, Map as MapIcon, Settings, LogOut, Wheat, Brain, CalendarIcon } from 'lucide-react';
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
@@ -44,6 +44,36 @@ export default function DashboardLayout() {
             >
               <MapIcon className="w-5 h-5" />
               <span>Meus Talhões</span>
+            </Link>
+
+            <Link 
+              to="/safras" 
+              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                isActive('/safras') ? 'bg-green-800 text-white font-semibold' : 'text-green-200 hover:bg-green-800/50 hover:text-white'
+              }`}
+            >
+              <Wheat className="w-5 h-5" />
+              <span>Safras / Culturas</span>
+            </Link>
+
+            <Link 
+              to="/insights" 
+              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                isActive('/insights') ? 'bg-green-800 text-white font-semibold' : 'text-green-200 hover:bg-green-800/50 hover:text-white'
+              }`}
+            >
+              <Brain className="w-5 h-5" />
+              <span>Insights e IA</span>
+            </Link>
+
+            <Link 
+              to="/calendario" 
+              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                isActive('/calendario') ? 'bg-green-800 text-white font-semibold' : 'text-green-200 hover:bg-green-800/50 hover:text-white'
+              }`}
+            >
+              <CalendarIcon className="w-5 h-5" />
+              <span>Calendário Agrícola</span>
             </Link>
           </nav>
         </div>

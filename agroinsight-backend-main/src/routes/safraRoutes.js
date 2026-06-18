@@ -13,10 +13,22 @@ import {
 } from '../controllers/insightsController.js';
 import { requireAuth } from '../middlewares/authMiddleware.js';
 import { requirePermission } from '../middlewares/authorizationMiddleware.js';
+// Dentro de src/routes/safraRoutes.js
+import { CULTURAS_SUPORTADAS } from '../data/cultures.js';
+
 
 const router = express.Router();
 
+
 router.use(requireAuth);
+router.get('/culturas-suportadas', (req, res, next) => {
+  try {
+    return res.json(CULTURAS_SUPORTADAS);
+  } catch (error) {
+    // Se der erro aqui, o "next(error)" joga o erro para o seuerrorHandler global do app.js
+    next(error); 
+  }
+});
 
 router.get('/:id', requirePermission('safras:read'), getSafraById);
 router.put('/:id', requirePermission('safras:update'), updateSafra);
