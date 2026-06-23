@@ -15,11 +15,19 @@ import { type Talhao } from '../types/agro';
   variacao: number;
 }
 
+// Interface para tipar os dados que vêm do Back-end
+interface DashboardData {
+  totalTalhoes: number;
+  safrasAtivas: number;
+  clima: string;
+}
+
 export default function VisaoGeral() {
 
   const navigate = useNavigate();
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dashboardSummary, setDashboardSummary] = useState<DashboardData | null>(null);
   const [erro, setErro] = useState('');
   // Estados para Análise de Performance Agronómica Real
   const [performanceSafra, setPerformanceSafra] = useState<any>(null);
@@ -33,21 +41,28 @@ export default function VisaoGeral() {
   const [loadingClima, setLoadingClima] = useState(true);
 
   // Vai buscar os dados ao back-end assim que a tela abre
-  useEffect(() => {
-    async function carregarDados() {
-      try {
-        // Acede à rota de talhões do seu backend
-        const response = await api.get('/talhoes');
-        setTalhoes(response.data);
-      } catch (err) {
-        console.error(err);
-        setErro('Não foi possível carregar os dados da fazenda.');
-      } finally {
-        setLoading(false);
-      }
+useEffect(() => {
+  async function carregarDados() {
+    try {
+      // Usando o Promise.all para buscar as duas rotas em paralelo
+      const [resTalhoes, resSummary] = await Promise.all([
+        api.get('/talhoes'),
+        api.get('/dashboard') 
+      ]);
+
+      // Salva os dados nos respectivos estados do React
+      setTalhoes(resTalhoes.data);
+      setDashboardSummary(resSummary.data); // Certifique-se de que adicionou este estado no topo!
+      
+    } catch (err) {
+      console.error(err);
+      setErro('Não foi possível carregar os dados da fazenda.');
+    } finally {
+      setLoading(false);
     }
-    carregarDados();
-  }, []);
+  }
+  carregarDados();
+}, []);
 
   // Passo 1: Carrega a lista inicial de talhões para alimentar o seletor
   useEffect(() => {
@@ -189,6 +204,8 @@ export default function VisaoGeral() {
 
       {/* CARDS DE RESUMO */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        {/* Card 1: Total de Talhões (Mantém o seu lógica inteligente ou usa a do summary) */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center space-x-4">
           <div className="p-3 bg-green-100 text-green-700 rounded-lg">
             <MapIcon className="w-8 h-8" />
@@ -196,30 +213,39 @@ export default function VisaoGeral() {
           <div>
             <p className="text-sm text-gray-500 font-medium">Total de Talhões</p>
             <p className="text-2xl font-bold text-gray-800">
-              {loading ? '...' : talhoes.length}
+              {loading ? '...' : (dashboardSummary?.totalTalhoes ?? talhoes.length)}
             </p>
           </div>
         </div>
 
+        {/* Card 2: Safras Ativas */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center space-x-4">
           <div className="p-3 bg-yellow-100 text-yellow-700 rounded-lg">
             <Wheat className="w-8 h-8" />
           </div>
           <div>
             <p className="text-sm text-gray-500 font-medium">Safras Ativas</p>
-            <p className="text-2xl font-bold text-gray-800">3</p>
+            <p className="text-2xl font-bold text-gray-800">
+              {/* MUDANÇA: Troca o "3" fixo por dado dinâmico */}
+              {loading ? '...' : (dashboardSummary?.safrasAtivas ?? 0)}
+            </p>
           </div>
         </div>
 
+        {/* Card 3: Clima Atual */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center space-x-4">
           <div className="p-3 bg-blue-100 text-blue-700 rounded-lg">
             <Droplets className="w-8 h-8" />
           </div>
           <div>
             <p className="text-sm text-gray-500 font-medium">Clima Atual</p>
-            <p className="text-xl font-bold text-gray-800">Bom</p>
+            <p className="text-xl font-bold text-gray-800">
+              {/* MUDANÇA: Troca o "Bom" fixo por dado dinâmico */}
+              {loading ? '...' : (dashboardSummary?.clima ?? 'Bom')}
+            </p>
           </div>
         </div>
+        
       </div>
 
       {/* SEÇÃO: MONITORAMENTO CLIMÁTICO COM SELETOR DE TALHÃO (README) */}

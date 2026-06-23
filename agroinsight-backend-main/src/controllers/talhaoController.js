@@ -2,6 +2,7 @@ import { Talhao, Safra, User } from '../models/index.js';
 import { asyncHandler } from '../middlewares/errorMiddleware.js';
 import { isCulturaValida, CULTURAS_SUPORTADAS } from '../data/cultures.js';
 import { STATUS_SAFRA } from '../models/safra.model.js';
+import { Op } from 'sequelize'; // <- Importação adicionada aqui no topo
 
 function parseId(value) {
   return Number.parseInt(value, 10);
@@ -126,11 +127,45 @@ export const createSafraForTalhao = asyncHandler(async (req, res) => {
 
   const safra = await Safra.create({
     cultura,
-    variedade,
+    variety: variedade,
     dataSemeadura,
     produtividadeEstimada,
     status: status ?? 'planejada',
     talhaoId: talhao.id,
   });
   res.status(201).json(safra);
+});
+
+// ==========================================
+// NOVA FUNÇÃO DO DASHBOARD ADICIONADA ABAIXO:
+// ==========================================
+export const getDashboardSummary = asyncHandler(async (req, res) => {
+  const userId = req.authUser.id;
+
+  // 1. Busca todos os talhões que pertencem a este usuário
+  const meusTalhoes = await Talhao.findAll({
+    where: { userId },
+    attributes: ['id']
+  });
+
+  const totalTalhoes = meusTalhoes.length;
+  const talhaoIds = meusTalhoes.map(t => t.id);
+
+  // 2. Conta as safras baseando-se nos IDs coletados
+  let safrasAtivas = 0;
+  
+  if (talhaoIds.length > 0) {
+    safrasAtivas = await Safra.count({
+      where: {
+        talhaoId: { [Op.in]: talhaoIds },
+        status: { [Op.in]: ['planejada', 'em_andamento'] } // Filtros corretos sem espaço
+      }
+    });
+  }
+
+  return res.json({
+    totalTalhoes,
+    safrasAtivas,
+    clima: "Bom"
+  });
 });

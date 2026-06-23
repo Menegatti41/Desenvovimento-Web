@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api'; // O nosso "carteiro"
 import { Sprout } from 'lucide-react'; // Ícone
+import { Link } from 'react-router-dom';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -80,6 +81,12 @@ export default function Login() {
             {loading ? 'A verificar...' : 'Iniciar Sessão'}
           </button>
         </form>
+        <div className="text-center pt-4 border-t border-gray-100 text-sm mt-4">
+          <span className="text-gray-400">Não possui uma conta? </span>
+          <Link to="/cadastro" className="font-semibold text-green-700 hover:text-green-800 transition-colors">
+            Cadastre-se aqui
+          </Link>
+        </div>
 
         <div className="text-xs text-center text-gray-400 mt-4">
           <p>Para testar: <b>joao@fazenda.com</b> | Senha: <b>123456</b></p>

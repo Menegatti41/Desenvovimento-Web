@@ -13,7 +13,7 @@ import {
 } from '../controllers/insightsController.js';
 import { requireAuth } from '../middlewares/authMiddleware.js';
 import { requirePermission } from '../middlewares/authorizationMiddleware.js';
-// Dentro de src/routes/safraRoutes.js
+import { getCalendarioSafra } from '../controllers/safraController.js';
 import { CULTURAS_SUPORTADAS } from '../data/cultures.js';
 
 
@@ -44,5 +44,8 @@ router.get('/:id/recomendacao', requirePermission('insights:read'), getRecomenda
 
 // Análise de performance (estimado x real).
 router.get('/:id/performance', requirePermission('safras:read'), getSafraPerformance);
+
+// Calendário
+router.get('/:id/calendario', requirePermission('safras:read'), getCalendarioSafra);
 
 export default router;

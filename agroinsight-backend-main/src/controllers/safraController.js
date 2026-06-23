@@ -1,11 +1,56 @@
 import { Safra, Talhao } from '../models/index.js';
 import { asyncHandler } from '../middlewares/errorMiddleware.js';
 import { analyzePerformance } from '../services/performance.service.js';
+import { buildAgendaAgricola } from '../services/calendar.service.js';
 import { STATUS_SAFRA } from '../models/safra.model.js';
 
 function parseId(value) {
   return Number.parseInt(value, 10);
 }
+
+export const getCalendarioSafra = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const safra = await Safra.findByPk(id);
+
+  if (!safra) {
+    return res.status(404).json({ message: 'Safra não encontrada.' });
+  }
+
+  // 1. BLINDAGEM DE DATA: Garante que o serviço receba estritamente uma string 'YYYY-MM-DD'
+  let dataPlantioLimpa = safra.dataSemeadura;
+  
+  if (dataPlantioLimpa instanceof Date) {
+    dataPlantioLimpa = dataPlantioLimpa.toISOString().split('T')[0];
+  } else if (typeof dataPlantioLimpa === 'string') {
+    dataPlantioLimpa = dataPlantioLimpa.split('T')[0];
+  }
+
+  // 2. Chama o serviço com a data já higienizada
+  const agenda = buildAgendaAgricola(safra.cultura, dataPlantioLimpa);
+
+  if (!agenda) {
+    return res.status(400).json({ message: 'Não foi possível gerar o calendário para esta cultura.' });
+  }
+
+  // 3. Formatação para o Front-end
+  const operacoesFormatadas = agenda.eventos.map((evento, index) => {
+    let status = 'pendente';
+    if (index < 2 && safra.status !== 'planejada') {
+      status = 'concluido';
+    }
+
+    return {
+      id: `${safra.id}-${index}`,
+      operacao: evento.atividade,
+      dataPrevista: evento.data,
+      status: status,
+      recomendacao: evento.descricao
+    };
+  });
+
+  return res.json(operacoesFormatadas);
+});
 
 // Carrega a safra junto do talhão (necessário para a checagem de propriedade).
 async function loadSafraWithTalhao(id) {

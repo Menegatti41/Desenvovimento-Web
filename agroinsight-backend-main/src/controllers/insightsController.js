@@ -68,7 +68,13 @@ export const getClimaByTalhao = asyncHandler(async (req, res) => {
     getCurrentAndForecast(talhao.latitude, talhao.longitude, dias));
   if (!clima) return;
 
-  res.json({ talhaoId: talhao.id, nome: talhao.nome, ...clima });
+  // TRADUTOR DE CLIMA: Entrega exatamente as variáveis que o VisaoGeral.tsx lê
+  return res.json({
+    temperatura: clima.atual.temperaturaC || 0,
+    umidade: clima.atual.umidadeRelativa || 0, // Usando a umidade do ar (%)
+    precipitacao: clima.atual.precipitacaoMm || 0,
+    localizacao: talhao.nome
+  });
 });
 
 // GET /safras/:id/fenologia — ciclo fenológico via graus-dia desde a semeadura.
@@ -86,8 +92,23 @@ export const getFenologiaBySafra = asyncHandler(async (req, res) => {
     return res.status(422).json({ message: `Cultura "${safra.cultura}" sem parâmetros agronômicos` });
   }
 
-  res.json({ safraId: safra.id, dataSemeadura: safra.dataSemeadura, ...fenologia });
+  // 1. TRADUTOR DA FENOLOGIA: Adapta os nomes para o Insights.tsx
+  let descricao = 'Monitoramento ativo do ciclo biológico.';
+  if (fenologia.estagio === 'Vegetativo') descricao = 'Desenvolvimento foliar ativo. Fase crítica para formação da estrutura da planta.';
+  if (fenologia.estagio === 'Reprodutivo') descricao = 'Fase de florescimento e enchimento de grãos. Alta demanda hídrica.';
+  if (fenologia.estagio === 'Maturação/Colheita') descricao = 'Preparação para colheita. Redução natural de umidade.';
+
+  const formatoFrontend = {
+    grausDiaAcumulados: fenologia.gddAcumulado,
+    estagioAtual: fenologia.estagio,
+    descricaoEstagio: descricao,
+    progressoEstagio: fenologia.progressoCiclo
+  };
+
+  // Envia exatamente o objeto que o React espera
+  return res.json(formatoFrontend);
 });
+
 
 // GET /safras/:id/alertas — janelas críticas de geada, calor e estresse hídrico.
 export const getAlertasBySafra = asyncHandler(async (req, res) => {
@@ -105,7 +126,22 @@ export const getAlertasBySafra = asyncHandler(async (req, res) => {
     return res.status(422).json({ message: `Cultura "${safra.cultura}" sem parâmetros agronômicos` });
   }
 
-  res.json({ safraId: safra.id, ...risco });
+  // TRADUTOR DE ALERTAS: Mapeia para o formato que o Insights.tsx espera
+  const alertasFormatados = (risco.alertas || []).map((alerta, index) => {
+    let tipoGravidade = 'informativo';
+    if (alerta.nivel === 'alto') tipoGravidade = 'critico';
+    if (alerta.nivel === 'medio') tipoGravidade = 'atencao';
+
+    return {
+      id: `${safra.id}-alerta-${index}`,
+      tipo: tipoGravidade, // O Front-end vai ler isso e pintar de vermelho ou amarelo!
+      mensagem: alerta.mensagem,
+      data: 'Próximos dias',
+      categoriaOriginal: alerta.tipo 
+    };
+  });
+
+  return res.json(alertasFormatados);
 });
 
 // GET /safras/:id/calendario — calendário agrícola sugerido (não depende de clima).
@@ -202,7 +238,6 @@ export const getRecomendacaoBySafra = asyncHandler(async (req, res) => {
   const clima = await withClimate(res, () => getCurrentAndForecast(latitude, longitude));
   if (!clima) return;
 
-  // Fenologia é best-effort: se o histórico falhar, segue sem ela.
   let fenologia = null;
   try {
     const historico = await getDailyHistory(latitude, longitude, safra.dataSemeadura);
@@ -214,7 +249,6 @@ export const getRecomendacaoBySafra = asyncHandler(async (req, res) => {
   const alertas = evaluateRisks(clima.previsao, safra.cultura)?.alertas ?? [];
   const context = buildContext({ talhao, safra, fenologia, clima, alertas });
 
-  // LLM com fallback por regras.
   let recomendacao;
   try {
     recomendacao = isConfigured()
@@ -224,20 +258,6 @@ export const getRecomendacaoBySafra = asyncHandler(async (req, res) => {
     recomendacao = { ...fallbackAdvisory(context), aviso: `LLM indisponível (${err.message}), usando regras.` };
   }
 
-  const marcador = buildMarker({
-    talhaoId: talhao.id,
-    safraId: safra.id,
-    nome: talhao.nome,
-    latitude,
-    longitude,
-    areaHectares: talhao.areaHectares,
-    alertas,
-  });
-
-  res.json({
-    safraId: safra.id,
-    contexto: context,
-    marcador,
-    recomendacao,
-  });
+  // 3. TRADUTOR DE RECOMENDAÇÃO: Envia apenas o objeto da recomendação, removendo o "empacotamento" (safraId, contexto, etc)
+  return res.json(recomendacao);
 });

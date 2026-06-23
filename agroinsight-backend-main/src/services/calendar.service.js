@@ -4,24 +4,30 @@ import { getCulture } from '../data/cultures.js';
 // Função PURA (não consulta data atual nem rede): os offsets são proporcionais
 // ao ciclo da cultura.
 
-function addDays(isoDate, days) {
-  const d = new Date(`${isoDate}T00:00:00.000Z`);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
+function addDays(dateInput, days) {
+  const d = new Date(dateInput);
+  
+  // BLINDAGEM CONTRA O ERRO 500: Garante que os dias a somar sejam um número de verdade.
+  const diasValidos = Number.isFinite(days) ? days : 0;
+  
+  if (isNaN(d.getTime())) {
+    const hoje = new Date();
+    hoje.setUTCDate(hoje.getUTCDate() + diasValidos);
+    return hoje.toISOString().split('T')[0];
+  }
+
+  d.setUTCDate(d.getUTCDate() + diasValidos);
+  return d.toISOString().split('T')[0];
 }
 
-/**
- * @param {string} cultura
- * @param {string} dataSemeadura formato YYYY-MM-DD
- * @returns {{cultura:string, dataSemeadura:string, cicloDias:number, eventos:Array}|null}
- */
 export function buildAgendaAgricola(cultura, dataSemeadura) {
   const culture = getCulture(cultura);
   if (!culture || !dataSemeadura) return null;
 
-  const ciclo = culture.cicloDias;
+  // CORREÇÃO: Tenta encontrar os dias do ciclo com vários nomes comuns. 
+  // Se mesmo assim não achar no banco, usa 120 dias como padrão de emergência.
+  const ciclo = Number(culture.cicloDias) || Number(culture.ciclo) || Number(culture.diasMedios) || 120;
 
-  // Offsets em dias, derivados de janelas agronômicas típicas relativas ao ciclo.
   const eventos = [
     {
       atividade: 'Adubação de base / plantio',
