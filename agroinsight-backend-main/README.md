@@ -53,6 +53,13 @@ Login retorna um **access token JWT** enviado em `Authorization: Bearer <token>`
 | `admin`   | Gerencia tudo (todos os talhões/safras/usuários)                  |
 | `produtor`| Gerencia apenas os **próprios** talhões e safras; lê insights     |
 
+
+## 🌍 Ambiente de Produção
+
+A API está publicada e acessível publicamente através da URL base:
+**`https://agroinsight-backend-main.fly.dev`**
+
+
 ## Endpoints
 
 ### Auth
