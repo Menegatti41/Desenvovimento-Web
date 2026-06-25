@@ -1,19 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { Map as MapIcon, Wheat, Droplets, Thermometer, CloudRain, ShieldCheck } from 'lucide-react';
+import { Map as MapIcon, Wheat, Droplets, Thermometer, CloudRain } from 'lucide-react';
 import { type Talhao } from '../types/agro'; 
-
-  // Definição da estrutura dos dados reais de performance
-  interface PerformanceSafra {
-  id: number;
-  cultura: string;
-  variedade: string;
-  talhaoNome: string;
-  estimado: number;
-  real: number;
-  variacao: number;
-}
 
 // Interface para tipar os dados que vêm do Back-end
 interface DashboardData {
@@ -52,7 +41,7 @@ useEffect(() => {
 
       // Salva os dados nos respectivos estados do React
       setTalhoes(resTalhoes.data);
-      setDashboardSummary(resSummary.data); // Certifique-se de que adicionou este estado no topo!
+      setDashboardSummary(resSummary.data);
       
     } catch (err) {
       console.error(err);
@@ -128,12 +117,18 @@ useEffect(() => {
         const resTalhoes = await api.get('/talhoes');
         const listaTalhoes = resTalhoes.data || [];
         
+        // 🔍 LOG 1: Monitora se os talhões estão vindo do banco
+        console.log("LOG 1 - TALHÕES VINDOS DO BACKEND:", listaTalhoes);
+        
         let todasColhidas: any[] = [];
 
         for (const talhao of listaTalhoes) {
           try {
             const resSafras = await api.get(`/talhoes/${talhao.id}/safras`);
             const safrasDoTalhao = resSafras.data || [];
+            
+            // 🔍 LOG 2: Vê o que tem dentro de cada talhão antes de filtrar
+            console.log(`LOG 2 - SAFRAS ORIGINAIS DO TALHÃO ${talhao.nome}:`, safrasDoTalhao);
             
             // Filtra apenas as colhidas e acopla o nome do talhão para o seletor
             const colhidas = safrasDoTalhao
@@ -146,9 +141,10 @@ useEffect(() => {
           }
         }
 
+        // 🔍 LOG 3: Vê se sobrou alguma safra após o filtro de 'colhida'
+        console.log("LOG 3 - SAFRAS QUE PASSARAM NO FILTRO 'colhida':", todasColhidas);
         setSafrasColhidas(todasColhidas);
 
-        // Seleciona automaticamente a primeira da lista se houver alguma
         if (todasColhidas.length > 0) {
           setSafraSelecionadaId(todasColhidas[0].id.toString());
         } else {
@@ -165,20 +161,35 @@ useEffect(() => {
   // Passo 2: Sempre que o utilizador mudar a safra no seletor, chama a sua rota oficial de performance
   useEffect(() => {
     async function buscarDadosDaRotaOficial() {
-      if (!safraSelecionadaId) return;
+      // 🔍 LOG 4: Verifica qual ID o seletor tentou buscar
+      console.log("LOG 4 - ID DA SAFRA SELECIONADA ATUALMENTE:", safraSelecionadaId);
+      
+      if (!safraSelecionadaId) {
+        console.log("LOG 4.1 - Parou aqui porque safraSelecionadaId está vazio.");
+        return;
+      }
+      
       try {
         setLoadingPerformance(true);
         const safraInfo = safrasColhidas.find(s => s.id.toString() === safraSelecionadaId);
         
+        // 🔍 LOG 5: Verifica se encontrou os dados locais dessa safra
+        console.log("LOG 5 - DADOS LOCAIS DA SAFRA ENCONTRADA (safraInfo):", safraInfo);
+        
         if (safraInfo) {
           const resPerformance = await api.get(`/safras/${safraSelecionadaId}/performance`);
           
+          // 🔍 LOG 6: Vê o que a API de performance realmente devolveu
+          console.log("LOG 6 - RESPOSTA DA ROTA DE PERFORMANCE DO BACKEND:", resPerformance.data);
+          
           setPerformanceSafra({
             ...safraInfo,
-            estimado: resPerformance.data.produtividadeEstimada || safraInfo.produtividadeEstimada || 70,
-            real: resPerformance.data.produtividadeReal || safraInfo.produtividadeReal || 0,
-            variacao: resPerformance.data.variacao || 0
+            estimado: resPerformance.data.produtividadeEstimada ?? safraInfo.produtividadeEstimada ?? 0,
+            real: resPerformance.data.produtividadeReal ?? safraInfo.produtividadeReal ?? 0,
+            variacao: resPerformance.data.variacao ?? 0
           });
+        } else {
+          console.log("LOG 5.1 - Parou aqui porque safraInfo veio como undefined.");
         }
       } catch (err) {
         console.error("Erro ao chamar rota oficial de performance:", err);

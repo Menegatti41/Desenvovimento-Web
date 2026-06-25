@@ -1,12 +1,12 @@
-node_modules
+node_modules/
 npm-debug.log
-data
+data/
 *.sqlite
 .env
 .git
 .gitignore
-coverage
-tests
+coverage/
+tests/
 README.md
 Dockerfile
 .dockerignore

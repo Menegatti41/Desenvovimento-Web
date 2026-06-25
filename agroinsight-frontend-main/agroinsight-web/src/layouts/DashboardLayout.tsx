@@ -1,6 +1,5 @@
-import React from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Sprout, LayoutDashboard, Map as MapIcon, Settings, LogOut, Wheat, Brain, CalendarIcon } from 'lucide-react';
+import { Sprout, LayoutDashboard, Map as MapIcon, LogOut, Wheat, Brain, CalendarIcon } from 'lucide-react';
 
 export default function DashboardLayout() {
   const navigate = useNavigate();

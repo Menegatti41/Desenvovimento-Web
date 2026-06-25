@@ -127,7 +127,7 @@ export const createSafraForTalhao = asyncHandler(async (req, res) => {
 
   const safra = await Safra.create({
     cultura,
-    variety: variedade,
+    variedade,
     dataSemeadura,
     produtividadeEstimada,
     status: status ?? 'planejada',

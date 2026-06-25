@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { type Talhao, type Safra } from '../types/agro';
 import { Brain, Sprout, AlertTriangle, Calendar, Lightbulb, Loader2, ShieldAlert } from 'lucide-react';
@@ -39,7 +39,7 @@ export default function Insights() {
 
   const [loadingConfig, setLoadingConfig] = useState(true);
   const [loadingInsights, setLoadingInsights] = useState(false);
-  const [erro, setErro] = useState('');
+  const [, setErro] = useState('');
 
   // 1. Carrega os talhões ao entrar na página
   useEffect(() => {

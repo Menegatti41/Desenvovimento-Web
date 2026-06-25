@@ -14,7 +14,7 @@ initModels();
 export function createApp() {
   const app = express();
 
-  app.use(cors());
+  app.use(cors({ origin: '*' })); // O asterisco libera o acesso para qualquer site. 
   app.use(express.json());
 
   // Healthcheck simples.

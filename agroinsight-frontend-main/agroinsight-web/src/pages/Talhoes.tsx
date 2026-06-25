@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { type Talhao } from '../types/agro';
-import { MapPin, Plus, Loader2, Trash2 } from 'lucide-react';
+import { MapPin, Plus, Loader2 } from 'lucide-react';
 
 export default function Talhoes() {
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);

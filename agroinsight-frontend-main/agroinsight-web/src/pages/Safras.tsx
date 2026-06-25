@@ -18,6 +18,7 @@ export default function Safras() {
   const [variedade, setVariedade] = useState('');
   const [dataSemeadura, setDataSemeadura] = useState('');
   const [status, setStatus] = useState<'planejada' | 'em_andamento' | 'colhida'>('em_andamento');
+  const [produtividadeEstimada, setProdutividadeEstimada] = useState('70');
 
   // 1. Carrega os talhões e a lista de culturas do back-end ao abrir a tela
   useEffect(() => {
@@ -113,42 +114,28 @@ export default function Safras() {
     const dataFormatada = new Date(dataSemeadura + 'T12:00:00Z');
 
     try {
+      // Mandamos apenas os dados que a safra precisa
       const novaSafra = {
-        talhaoId: Number(talhaoSelecionadoId),
         cultura,
         variedade,
         dataSemeadura: dataFormatada,
-        status: status
+        status: status,
+        produtividadeEstimada: Number(produtividadeEstimada)
       };
 
-      await api.post('/safras', novaSafra);
+      await api.post(`/talhoes/${talhaoSelecionadoId}/safras`, novaSafra);
 
+      // Limpa o formulário e recarrega a lista
       setVariedade('');
       setDataSemeadura('');
       carregarSafrasDoTalhao(talhaoSelecionadoId);
-    } catch (err: any) {
-      console.log('Erro na tentativa 1, tentando rota alternativa...', err.response?.data);
       
-      try {
-        const novaSafraAlternativa = {
-          cultura,
-          variedade,
-          dataSemeadura: dataFormatada,
-          status: status
-        };
-        
-        await api.post(`/talhoes/${talhaoSelecionadoId}/safras`, novaSafraAlternativa);
-        
-        setVariedade('');
-        setDataSemeadura('');
-        carregarSafrasDoTalhao(talhaoSelecionadoId);
-      } catch (errorInner: any) {
-        console.error('Erro detalhado do servidor:', errorInner.response?.data);
-        const mensagemErro = errorInner.response?.data?.message || 
-                             errorInner.response?.data?.error ||
-                             'Erro 400: Dados incompatíveis com o servidor.';
-        setErro(`Erro ao registar a safra: ${mensagemErro}`);
-      }
+    } catch (error: any) {
+      console.error('Erro detalhado do servidor:', error.response?.data);
+      const mensagemErro = error.response?.data?.message || 
+                           error.response?.data?.error ||
+                           'Erro ao registar a safra. Verifique os dados.';
+      setErro(`Erro ao registar a safra: ${mensagemErro}`);
     } finally {
       setSubmitting(false);
     }
@@ -253,18 +240,18 @@ export default function Safras() {
               >
                 <option value="planejada">Planeada (Planejada)</option>
                 <option value="em_andamento">Ativa (Em Andamento)</option>
-                <option value="colhida">Colhida</option>
               </select>
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">Produtividade Est. (sc/ha)</label>
+              <label className="text-xs font-semibold text-gray-500 uppercase mb-1">Produtividade Est. (sc/ha)</label>
               <input 
                 type="number" 
                 name="produtividadeEstimada"
                 placeholder="Ex: 75"
-                defaultValue="70"
-                className="border border-gray-200 p-2.5 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-green-700"
+                value={produtividadeEstimada}
+                onChange={e => setProdutividadeEstimada(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg p-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:border-green-600"
               />
             </div>
 

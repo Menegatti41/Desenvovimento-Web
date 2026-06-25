@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { type Talhao, type Safra } from '../types/agro';
 import { Calendar as CalendarIcon, CheckCircle2, Clock, AlertCircle, Loader2, Leaf, ShieldAlert, Tractor } from 'lucide-react';

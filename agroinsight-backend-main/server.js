@@ -10,8 +10,8 @@ async function start() {
   await sequelize.authenticate();
 
   const app = createApp();
-  app.listen(port, () => {
-    console.log(`AgroInsight API rodando em http://localhost:${port}`);
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`AgroInsight API rodando na porta ${port} (0.0.0.0)`);
   });
 }
 

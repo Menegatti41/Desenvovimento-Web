@@ -125,6 +125,9 @@ export const getSafraPerformance = asyncHandler(async (req, res) => {
     cultura: safra.cultura,
     variedade: safra.variedade,
     status: safra.status,
+    produtividadeEstimada: safra.produtividadeEstimada, 
+    produtividadeReal: safra.produtividadeReal,
+    variacao: analise?.variacao || analise?.percentual || 0, 
     performance: analise,
   });
 });
