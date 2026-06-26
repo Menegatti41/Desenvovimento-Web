@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { type Talhao } from '../types/agro';
-import { MapPin, Plus, Loader2 } from 'lucide-react';
+import { MapPin, Plus, Loader2, Trash2 } from 'lucide-react';
 
 export default function Talhoes() {
   const [talhoes, setTalhoes] = useState<Talhao[]>([]);
@@ -63,6 +63,30 @@ export default function Talhoes() {
       setSubmitting(false);
     }
   }
+
+  async function handleExcluirTalhao(id: number) {
+  // ⚠️ Alerta de segurança para o usuário não clicar sem querer
+  const confirmar = window.confirm(
+    "Tem certeza que deseja excluir este talhão? Isso pode remover as safras vinculadas a ele."
+  );
+  
+  if (!confirmar) return;
+
+  try {
+    // Batendo na rota DELETE
+    await api.delete(`/talhoes/${id}`);
+    
+    alert("Talhão excluído com sucesso!");
+    
+    // Chamando aqui a função que recarrega os talhões da tela
+    carregarTalhoes();
+    
+  } catch (err: any) {
+    console.error("Erro ao excluir talhão:", err);
+    const msg = err.response?.data?.message || "Não foi possível excluir o talhão.";
+    alert(`Erro: ${msg}`);
+  }
+}
 
   return (
     <div className="p-8 space-y-8">
@@ -176,6 +200,13 @@ export default function Talhoes() {
                       )}
                     </div>
                   </div>
+                  <button
+                    onClick={() => handleExcluirTalhao(talhao.id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                    title="Excluir Talhão"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
                 </div>
               ))}
 
