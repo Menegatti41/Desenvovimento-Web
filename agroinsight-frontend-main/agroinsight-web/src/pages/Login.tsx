@@ -89,7 +89,6 @@ export default function Login() {
         </div>
 
         <div className="text-xs text-center text-gray-400 mt-4">
-          <p>Para testar: <b>joao@fazenda.com</b> | Senha: <b>123456</b></p>
         </div>
       </div>
     </div>
